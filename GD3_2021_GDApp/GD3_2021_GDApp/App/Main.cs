@@ -337,7 +337,7 @@ namespace GDApp
             Input.Mouse.Position = Screen.Instance.ScreenCentre;
 
             //turn on/off debug info
-            InitializeDebugUI(true, false);
+            InitializeDebugUI(true, true);
 
             //to show the menu we must start paused for everything else!
             EventDispatcher.Raise(new EventData(EventCategoryType.Menu, EventActionType.OnPause));
@@ -540,15 +540,12 @@ namespace GDApp
             /**************************** Play Button ****************************/
 
             var btnTexture = textureDictionary["PlayButton"];
-            var sourceRectangle
-                = new Microsoft.Xna.Framework.Rectangle(0, 0,
-                btnTexture.Width, btnTexture.Height);
-            var origin = new Vector2(btnTexture.Width / 2.0f, btnTexture.Height / 2.0f);
+            var sourceRectangle = new Microsoft.Xna.Framework.Rectangle(1, 1, btnTexture.Width, btnTexture.Height);
+            var origin = new Vector2(btnTexture.Width / 10.0f, btnTexture.Height / 10.0f);
 
-            var playBtn = new UIButtonObject(AppData.MENU_PLAY_BTN_NAME, UIObjectType.Button,
-                new Transform2D(AppData.MENU_PLAY_BTN_POSITION,
-                0.5f * Vector2.One, 0),
-                0.1f,
+            var playBtn = new UIButtonObject(AppData.MENU_PLAY_BTN_NAME, UIObjectType.Button,new Transform2D(AppData.MENU_PLAY_BTN_POSITION,
+                1f * Vector2.One, 0),
+                1f,
                 Color.White,
                 SpriteEffects.None,
                 origin,
@@ -559,7 +556,7 @@ namespace GDApp
                 fontDictionary["menu"],
                 Color.Black,
                 Vector2.Zero);
-
+            
             //demo button color change
             var comp = new UIColorMouseOverBehaviour(Color.Orange, Color.White);
             playBtn.AddComponent(comp);
@@ -568,31 +565,26 @@ namespace GDApp
 
 
             /**************************** Exit Button ****************************/
+            //var btnTexture2 = textureDictionary["ExitButton"];
+            //var exitBtn = new UIButtonObject(AppData.MENU_EXIT_BTN_NAME, UIObjectType.Button,new Transform2D(AppData.MENU_PLAY_BTN_POSITION,
+            //     1f * Vector2.One, 0),
+            //     1f,
+            //     Color.White,
+            //     SpriteEffects.None,
+            //     origin,
+            //     btnTexture2,
+            //     null,
+            //     sourceRectangle,
+            //     "",
+            //     fontDictionary["menu"],
+            //     Color.Black,
+            //     Vector2.Zero);
 
-            //same button texture so we can re-use texture, sourceRectangle and origin
+            playBtn.AddComponent(new UIColorMouseOverBehaviour(Color.HotPink, Color.White));
+            //exitBtn.AddComponent(new UIColorMouseOverBehaviour(Color.HotPink, Color.White));
 
-            //use a simple/smaller version of the UIButtonObject constructor
-            var btnTexture2 = textureDictionary["ExitButton"];
-            var exitBtn = new UIButtonObject(AppData.MENU_EXIT_BTN_NAME, UIObjectType.Button,
-                 new Transform2D(AppData.MENU_PLAY_BTN_POSITION,
-                 0.2f * Vector2.One, 0),
-                 0.1f,
-                 Color.White,
-                 SpriteEffects.None,
-                 origin,
-                 btnTexture2,
-                 null,
-                 sourceRectangle,
-                 "",
-                 fontDictionary["menu"],
-                 Color.Black,
-                 Vector2.Zero);
-
-
-            //demo button color change
-            exitBtn.AddComponent(new UIColorMouseOverBehaviour(Color.Orange, Color.White));
-
-            mainMenuUIScene.Add(exitBtn);
+            mainMenuUIScene.Add(playBtn);
+            //mainMenuUIScene.Add(exitBtn);
 
             #endregion Main Menu
 
@@ -937,8 +929,8 @@ namespace GDApp
 
             clone = sign.Clone() as GameObject;
             clone.Name = "Cube1";
-            clone.Transform.Translate(-70, 12, 56);
-            clone.Transform.SetScale(0.1f, 0.1f, 0.1f);
+            clone.Transform.Translate(-116, 211, -45);
+            clone.Transform.SetScale(0.2f, 0.2f, 0.2f);
             clone.Transform.SetRotation(0, 130, 0);
             clone.AddComponent(new ModelRenderer(modelDictionary["Cube1"], new BasicMaterial("sphere_material", shader, Color.White, 1, textureDictionary["GreenCube"])));
 
@@ -968,7 +960,7 @@ namespace GDApp
 
             clone = sign.Clone() as GameObject;
             clone.Name = "Cube2";
-            clone.Transform.Translate(-70, 12, 56);
+            clone.Transform.Translate(-116, 211, -35);
             clone.Transform.SetScale(0.2f, 0.2f, 0.2f);
             clone.Transform.SetRotation(0, 130, 0);
             clone.AddComponent(new ModelRenderer(modelDictionary["Cube2"], new BasicMaterial("sphere_material", shader, Color.White, 1, textureDictionary["RedCube"])));
