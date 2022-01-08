@@ -433,6 +433,7 @@ namespace GDApp
             textureDictionary.Add("skybox_right", Content.Load<Texture2D>("Assets/Textures/Skybox/right"));
             textureDictionary.Add("skybox_back", Content.Load<Texture2D>("Assets/Textures/Skybox/back"));
             textureDictionary.Add("skybox_sky", Content.Load<Texture2D>("Assets/Textures/Skybox/sky"));
+            textureDictionary.Add("WorldTexture", Content.Load<Texture2D>("Assets/Textures/Skybox/WorldTexture"));
 
             //environment
             textureDictionary.Add("grass", Content.Load<Texture2D>("Assets/Textures/Foliage/Ground/grass1"));
@@ -719,7 +720,7 @@ namespace GDApp
             clone.Name = "skybox_back";
             clone.Transform.Translate(0, 0, -worldScale / 2.0f);
             clone.Transform.Scale(worldScale, worldScale, 1);
-            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("skybox_back_material", shader, Color.White, 1, textureDictionary["skybox_back"])));
+            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("WorldTexture", shader, Color.White, 1, textureDictionary["WorldTexture"])));
             level.Add(clone);
 
             //left
@@ -728,7 +729,7 @@ namespace GDApp
             clone.Transform.Translate(-worldScale / 2.0f, 0, 0);
             clone.Transform.Scale(worldScale, worldScale, null);
             clone.Transform.Rotate(0, 90, 0);
-            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("skybox_left_material", shader, Color.White, 1, textureDictionary["skybox_left"])));
+            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("WorldTexture", shader, Color.White, 1, textureDictionary["WorldTexture"])));
             level.Add(clone);
 
             //right
@@ -737,7 +738,7 @@ namespace GDApp
             clone.Transform.Translate(worldScale / 2.0f, 0, 0);
             clone.Transform.Scale(worldScale, worldScale, null);
             clone.Transform.Rotate(0, -90, 0);
-            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("skybox_right_material", shader, Color.White, 1, textureDictionary["skybox_right"])));
+            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("WorldTexture", shader, Color.White, 1, textureDictionary["WorldTexture"])));
             level.Add(clone);
 
             //front
@@ -746,7 +747,7 @@ namespace GDApp
             clone.Transform.Translate(0, 0, worldScale / 2.0f);
             clone.Transform.Scale(worldScale, worldScale, null);
             clone.Transform.Rotate(0, -180, 0);
-            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("skybox_front_material", shader, Color.White, 1, textureDictionary["skybox_front"])));
+            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("WorldTexture", shader, Color.White, 1, textureDictionary["WorldTexture"])));
             level.Add(clone);
 
             //top
@@ -755,7 +756,7 @@ namespace GDApp
             clone.Transform.Translate(0, worldScale / 2.0f, 0);
             clone.Transform.Scale(worldScale, worldScale, null);
             clone.Transform.Rotate(90, -90, 0);
-            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("skybox_sky_material", shader, Color.White, 1, textureDictionary["skybox_sky"])));
+            clone.AddComponent(new MeshRenderer(mesh, new BasicMaterial("WorldTexture", shader, Color.White, 1, textureDictionary["WorldTexture"])));
             level.Add(clone);
         }
 
@@ -816,7 +817,7 @@ namespace GDApp
             camera = new GameObject(AppData.CAMERA_FIRSTPERSON_COLLIDABLE_NAME, GameObjectType.Camera);
 
             //set initial position - important to set before the collider as collider capsule feeds off this position
-            camera.Transform.SetTranslation(0, 5, 10);
+            camera.Transform.SetTranslation(-200, 210, -23);
 
             //add components
             camera.AddComponent(new Camera(_graphics.GraphicsDevice.Viewport));
@@ -874,7 +875,7 @@ namespace GDApp
             var ground = new GameObject("ground", GameObjectType.Ground, true);
             ground.Transform.SetTranslation(0, -1, 0);
             ground.Transform.SetScale(worldScale, 2, worldScale);
-            ground.AddComponent(new MeshRenderer(mesh, new BasicMaterial("grass_material", shader, Color.White, 1, textureDictionary["grass"])));
+            ground.AddComponent(new MeshRenderer(mesh, new BasicMaterial("WorldTexture", shader, Color.White, 1, textureDictionary["WorldTexture"])));
 
             //add Collision Surface(s)
             collider = new Collider();
@@ -893,30 +894,35 @@ namespace GDApp
         private void InitializePlatform(Scene level)
         {
             #region platform
+            #region Reusable - You can copy and re-use this code elsewhere, if required
+
             //re-use the code on the gfx card, if we want to draw multiple objects using Clone
             var shader = new BasicShader(Application.Content, false, true);
-            var sign = new GameObject("Platform", GameObjectType.Architecture, true);
-            GameObject clone = null;
+            //re-use the vertices and indices of the model
+            var mesh = new CubeMesh();
 
-            clone = sign.Clone() as GameObject;
-            clone.Name = "Platform";
-            clone.Transform.Translate(-200, 200, -300);
-            clone.Transform.SetScale(0.2f, 0.2f, 0.2f);
-            clone.Transform.SetRotation(0, 0, 0);
-            clone.AddComponent(new ModelRenderer(modelDictionary["Platform"], new BasicMaterial("sphere_material", shader, Color.White, 1, textureDictionary["PlatformTexture"])));
+            #endregion Reusable - You can copy and re-use this code elsewhere, if required
+
+            //create the ground
+            var platform = new GameObject("Platform", GameObjectType.Ground, true);
+            platform.Transform.Translate(-200, 200, -300);
+            platform.Transform.SetScale(0.2f, 0.2f, 0.2f);
+            platform.Transform.SetRotation(0, 0, 0);
+            platform.AddComponent(new ModelRenderer(modelDictionary["Platform"],
+                new BasicMaterial("sphere_material", shader, Color.White, 1, textureDictionary["PlatformTexture"])));
 
             //add Collision Surface(s)
             collider = new Collider();
-            clone.AddComponent(collider);
-            collider.AddPrimitive(
-               CollisionUtility.GetTriangleMesh(modelDictionary["Platform"],
-                new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0.8f, 0.8f, 1f)),
-                new MaterialProperties(0.1f, 0.8f, 0.7f));
-
+            platform.AddComponent(collider);
+            collider.AddPrimitive(new Box(
+                   platform.Transform.LocalTranslation,
+                    platform.Transform.LocalRotation,
+                    platform.Transform.LocalScale),
+                    new MaterialProperties(0.8f, 0.8f, 0.7f));
             collider.Enable(true, 1);
 
-            level.Add(clone);
-
+            //add To Scene Manager
+            level.Add(platform);
 
             #endregion platform
         }
