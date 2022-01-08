@@ -138,14 +138,14 @@ namespace GDApp
             //this predicate lets us say ignore all the other collidable objects except interactables and consumables
             Predicate<GameObject> collisionPredicate =
                 (collidableObject) =>
-            {
-                if (collidableObject != null)
-                    return collidableObject.GameObjectType
-                    == GameObjectType.Interactable
-                    || collidableObject.GameObjectType == GameObjectType.Consumable;
+                {
+                    if (collidableObject != null)
+                        return collidableObject.GameObjectType
+                        == GameObjectType.Interactable
+                        || collidableObject.GameObjectType == GameObjectType.Consumable;
 
-                return false;
-            };
+                    return false;
+                };
             pickingManager = new PickingManager(this, 2, 100, collisionPredicate);
 
             //initialize global application data
@@ -386,6 +386,9 @@ namespace GDApp
             modelDictionary.Add("Assets/Models/cube");
             modelDictionary.Add("Assets/Models/teapot");
             modelDictionary.Add("Assets/Models/monkey1");
+            modelDictionary.Add("Assets/Models/Cube1");
+            modelDictionary.Add("Assets/Models/Cube2");
+            modelDictionary.Add("Assets/Models/Platform");
         }
 
         /// <summary>
@@ -404,11 +407,11 @@ namespace GDApp
         private void LoadSounds()
         {
             var soundEffect =
-                Content.Load<SoundEffect>("Assets/Sounds/Effects/smokealarm1");
+                Content.Load<SoundEffect>("Assets/Sounds/GameBackground");
 
             //add the new sound effect
             soundManager.Add(new GDLibrary.Managers.Cue(
-                "smokealarm",
+                "GameBackground",
                 soundEffect,
                 SoundCategoryType.Alarm,
                 new Vector3(1, 0, 0),
@@ -434,6 +437,9 @@ namespace GDApp
             //environment
             textureDictionary.Add("grass", Content.Load<Texture2D>("Assets/Textures/Foliage/Ground/grass1"));
             textureDictionary.Add("crate1", Content.Load<Texture2D>("Assets/Textures/Props/Crates/crate1"));
+            textureDictionary.Add("PlatformTexture", Content.Load<Texture2D>("Assets/Textures/Architecture/PlatformTexture"));
+            textureDictionary.Add("GreenCube", Content.Load<Texture2D>("Assets/Textures/Props/GreenCube"));
+            textureDictionary.Add("RedCube", Content.Load<Texture2D>("Assets/Textures/Props/RedCube"));
 
             //ui
             textureDictionary.Add("ui_progress_32_8", Content.Load<Texture2D>("Assets/Textures/UI/Controls/ui_progress_32_8"));
@@ -445,12 +451,10 @@ namespace GDApp
             textureDictionary.Add("controlsmenu", Content.Load<Texture2D>("Assets/Textures/UI/Backgrounds/controlsmenu"));
             textureDictionary.Add("exitmenuwithtrans", Content.Load<Texture2D>("Assets/Textures/UI/Backgrounds/exitmenuwithtrans"));
             textureDictionary.Add("genericbtn", Content.Load<Texture2D>("Assets/Textures/UI/Controls/genericbtn"));
+            textureDictionary.Add("CubeRush", Content.Load<Texture2D>("Assets/Textures/UI/Backgrounds/CubeRush"));
+            textureDictionary.Add("PlayButton", Content.Load<Texture2D>("Assets/Textures/UI/Backgrounds/PlayButton"));
+            textureDictionary.Add("ExitButton", Content.Load<Texture2D>("Assets/Textures/UI/Backgrounds/ExitButton"));
 
-            //reticule
-            textureDictionary.Add("reticuleOpen",
-      Content.Load<Texture2D>("Assets/Textures/UI/Controls/reticuleOpen"));
-            textureDictionary.Add("reticuleDefault",
-          Content.Load<Texture2D>("Assets/Textures/UI/Controls/reticuleDefault"));
         }
 
         /// <summary>
@@ -516,16 +520,16 @@ namespace GDApp
             /**************************** Background Image ****************************/
 
             //main background
-            var texture = textureDictionary["mainmenu"];
+            var texture = textureDictionary["CubeRush"];
             //get how much we need to scale background to fit screen, then downsizes a little so we can see game behind background
             var scale = _graphics.GetScaleForTexture(texture,
-                new Vector2(0.8f, 0.8f));
+                new Vector2(1f, 1f));
 
             menuObject = new UITextureObject("main background",
                 UIObjectType.Texture,
                 new Transform2D(Screen.Instance.ScreenCentre, scale, 0), //sets position as center of screen
                 0,
-                new Color(255, 255, 255, 200),
+                new Color(255, 255, 255, 400),
                 texture.GetOriginAtCenter(), //if we want to position image on screen center then we need to set origin as texture center
                 texture);
 
@@ -534,7 +538,7 @@ namespace GDApp
 
             /**************************** Play Button ****************************/
 
-            var btnTexture = textureDictionary["genericbtn"];
+            var btnTexture = textureDictionary["PlayButton"];
             var sourceRectangle
                 = new Microsoft.Xna.Framework.Rectangle(0, 0,
                 btnTexture.Width, btnTexture.Height);
@@ -550,7 +554,7 @@ namespace GDApp
                 btnTexture,
                 null,
                 sourceRectangle,
-                "Play",
+                "",
                 fontDictionary["menu"],
                 Color.Black,
                 Vector2.Zero);
@@ -561,39 +565,28 @@ namespace GDApp
 
             mainMenuUIScene.Add(playBtn);
 
-            /**************************** Controls Button ****************************/
-
-            //same button texture so we can re-use texture, sourceRectangle and origin
-
-            var controlsBtn = new UIButtonObject(AppData.MENU_CONTROLS_BTN_NAME, UIObjectType.Button,
-                new Transform2D(AppData.MENU_CONTROLS_BTN_POSITION, 0.5f * Vector2.One, 0),
-                0.1f,
-                Color.White,
-                origin,
-                btnTexture,
-                "Controls",
-                fontDictionary["menu"],
-                Color.Black);
-
-            //demo button color change
-            controlsBtn.AddComponent(new UIColorMouseOverBehaviour(Color.Orange, Color.White));
-
-            mainMenuUIScene.Add(controlsBtn);
 
             /**************************** Exit Button ****************************/
 
             //same button texture so we can re-use texture, sourceRectangle and origin
 
             //use a simple/smaller version of the UIButtonObject constructor
+            var btnTexture2 = textureDictionary["ExitButton"];
             var exitBtn = new UIButtonObject(AppData.MENU_EXIT_BTN_NAME, UIObjectType.Button,
-                new Transform2D(AppData.MENU_EXIT_BTN_POSITION, 0.5f * Vector2.One, 0),
-                0.1f,
-                Color.Orange,
-                origin,
-                btnTexture,
-                "Exit",
-                fontDictionary["menu"],
-                Color.Black);
+                 new Transform2D(AppData.MENU_PLAY_BTN_POSITION,
+                 0.2f * Vector2.One, 0),
+                 0.1f,
+                 Color.White,
+                 SpriteEffects.None,
+                 origin,
+                 btnTexture2,
+                 null,
+                 sourceRectangle,
+                 "",
+                 fontDictionary["menu"],
+                 Color.Black,
+                 Vector2.Zero);
+
 
             //demo button color change
             exitBtn.AddComponent(new UIColorMouseOverBehaviour(Color.Orange, Color.White));
@@ -623,32 +616,7 @@ namespace GDApp
             //create the scene
             var mainGameUIScene = new UIScene(AppData.UI_SCENE_MAIN_NAME);
 
-            #region Add Health Bar
 
-            //add a health bar in the centre of the game window
-            var texture = textureDictionary["progress_white"];
-            var position = new Vector2(_graphics.PreferredBackBufferWidth / 2, 50);
-            var origin = new Vector2(texture.Width / 2, texture.Height / 2);
-
-            //create the UI element
-            var healthTextureObj = new UITextureObject("health",
-                UIObjectType.Texture,
-                new Transform2D(position, new Vector2(2, 0.5f), 0),
-                0,
-                Color.White,
-                origin,
-                texture);
-
-            //add a demo time based behaviour - because we can!
-            healthTextureObj.AddComponent(new UITimeColorFlipBehaviour(Color.White, Color.Red, 1000));
-
-            //add a progress controller
-            healthTextureObj.AddComponent(new UIProgressBarController(5, 10));
-
-            //add the ui element to the scene
-            mainGameUIScene.Add(healthTextureObj);
-
-            #endregion Add Health Bar
 
             #region Add Text
 
@@ -659,7 +627,7 @@ namespace GDApp
             nameTextObj = new UITextObject(str, UIObjectType.Text,
                 new Transform2D(new Vector2(50, 50),
                 Vector2.One, 0),
-                0, font, "Brutus Maximus");
+                0, font, "");
 
             //  nameTextObj.Origin = font.MeasureString(str) / 2;
             //  nameTextObj.AddComponent(new UIExpandFadeBehaviour());
@@ -669,29 +637,6 @@ namespace GDApp
 
             #endregion Add Text
 
-            #region Add Reticule
-
-            var defaultTexture = textureDictionary["reticuleDefault"];
-            var alternateTexture = textureDictionary["reticuleOpen"];
-            origin = defaultTexture.GetOriginAtCenter();
-
-            var reticule = new UITextureObject("reticule",
-                     UIObjectType.Texture,
-                new Transform2D(Vector2.Zero, Vector2.One, 0),
-                0,
-                Color.White,
-                SpriteEffects.None,
-                origin,
-                defaultTexture,
-                alternateTexture,
-                new Microsoft.Xna.Framework.Rectangle(0, 0,
-                defaultTexture.Width, defaultTexture.Height));
-
-            reticule.AddComponent(new UIReticuleBehaviour());
-
-            mainGameUIScene.Add(reticule);
-
-            #endregion Add Reticule
 
             #region Add Video UI Texture
 
@@ -909,77 +854,9 @@ namespace GDApp
         private void InitializeCollidables(Scene level, float worldScale = 500)
         {
             InitializeCollidableGround(level, worldScale);
-            InitializeCollidableCubes(level);
-
-            InitializeCollidableModels(level);
-            InitializeCollidableTriangleMeshes(level);
-        }
-
-        private void InitializeCollidableTriangleMeshes(Scene level)
-        {
-            //re - use the code on the gfx card, if we want to draw multiple objects using Clone
-            //  var shader = new BasicShader(Application.Content, false, true);
-
-            //create the teapot
-            //var complexModel = new GameObject("teapot", GameObjectType.Environment, true);
-            //complexModel.Transform.SetTranslation(5, 0, 0);
-            //complexModel.Transform.SetScale(0.1f, 0.1f, 0.1f);
-            //complexModel.Transform.SetRotation(0, 45, 0);
-            //complexModel.AddComponent(new ModelRenderer(
-            //    modelDictionary["teapot"],
-            //    new BasicMaterial("teapot_material", shader,
-            //    Color.White, 1, textureDictionary["mona lisa"])));
-
-            //add Collision Surface(s)
-            //collider = new Collider();
-            //complexModel.AddComponent(collider);
-            //collider.AddPrimitive(
-            //    CollisionUtility.GetTriangleMesh(modelDictionary["teapot"],
-            //    complexModel.Transform.LocalTranslation,
-            //    complexModel.Transform.LocalRotation,
-            //    complexModel.Transform.LocalScale),
-            //    new MaterialProperties(0.8f, 0.8f, 0.7f));
-            //collider.Enable(true, 1);
-
-            //add To Scene Manager
-            //level.Add(complexModel);
-        }
-
-        private void InitializeCollidableModels(Scene level)
-        {
-            #region Reusable - You can copy and re-use this code elsewhere, if required
-
-            //re-use the code on the gfx card, if we want to draw multiple objects using Clone
-            var shader = new BasicShader(Application.Content, false, true);
-
-            //create the sphere
-            var sphereArchetype = new GameObject("sphere", GameObjectType.Interactable, true);
-
-            #endregion Reusable - You can copy and re-use this code elsewhere, if required
-
-            GameObject clone = null;
-
-            for (int i = 0; i < 5; i++)
-            {
-                clone = sphereArchetype.Clone() as GameObject;
-                clone.Name = $"sphere - {i}";
-                clone.Transform.SetTranslation(-5 + i / 10f, 5 + 4 * i, 0);
-                clone.AddComponent(new ModelRenderer(
-                    modelDictionary["sphere"],
-                    new BasicMaterial("sphere_material",
-                    shader, Color.White, 1, textureDictionary["checkerboard"])));
-
-                //add Collision Surface(s)
-                collider = new Collider(false, false);
-                clone.AddComponent(collider);
-                collider.AddPrimitive(new JigLibX.Geometry.Sphere(
-                   sphereArchetype.Transform.LocalTranslation, 1),
-                    new MaterialProperties(0.8f, 0.8f, 0.7f));
-                collider.Enable(false, 1);
-
-                //add To Scene Manager
-                level.Add(clone);
-            }
+            InitializePlatform(level);
+            InitializeGreenCube(level);
+            InitializeRedCube(level);
         }
 
         private void InitializeCollidableGround(Scene level, float worldScale)
@@ -1013,131 +890,145 @@ namespace GDApp
             level.Add(ground);
         }
 
-        private void InitializeCollidableCubes(Scene level)
+        private void InitializePlatform(Scene level)
         {
-            #region Reusable - You can copy and re-use this code elsewhere, if required
-
+            #region platform
             //re-use the code on the gfx card, if we want to draw multiple objects using Clone
             var shader = new BasicShader(Application.Content, false, true);
-            //re-use the mesh
-            var mesh = new CubeMesh();
-            //clone the cube
-            var cube = new GameObject("cube", GameObjectType.Consumable, false);
-
-            #endregion Reusable - You can copy and re-use this code elsewhere, if required
-
+            var sign = new GameObject("Platform", GameObjectType.Architecture, true);
             GameObject clone = null;
 
-            for (int i = 0; i < 5; i++)
-            {
-                //clone the archetypal cube
-                clone = cube.Clone() as GameObject;
-                clone.Transform.SetRotation(0, 45, 0);
-                clone.Transform.SetScale(1, 1, 1);
-                clone.Name = $"cube - {i}";
-                clone.Transform.Translate(5, 4f * (1 + i), 0);
-                clone.AddComponent(new MeshRenderer(mesh,
-                    new BasicMaterial("cube_material", shader,
-                    Color.White, 0.4f, textureDictionary["crate1"])));
+            clone = sign.Clone() as GameObject;
+            clone.Name = "Platform";
+            clone.Transform.Translate(-200, 200, -300);
+            clone.Transform.SetScale(0.2f, 0.2f, 0.2f);
+            clone.Transform.SetRotation(0, 0, 0);
+            clone.AddComponent(new ModelRenderer(modelDictionary["Platform"], new BasicMaterial("sphere_material", shader, Color.White, 1, textureDictionary["PlatformTexture"])));
 
-                //add desc and value to a pickup used when we collect/remove/collide with it
-                clone.AddComponent(new PickupBehaviour("ammo pack", 15));
+            //add Collision Surface(s)
+            collider = new Collider();
+            clone.AddComponent(collider);
+            collider.AddPrimitive(
+               CollisionUtility.GetTriangleMesh(modelDictionary["Platform"],
+                new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0.8f, 0.8f, 1f)),
+                new MaterialProperties(0.1f, 0.8f, 0.7f));
 
-                //add demo alpha change behaviour
-                clone.AddComponent(new ColorLerpBehaviour(Color.White, Color.Red, 0.1f));
+            collider.Enable(true, 1);
 
-                //add Collision Surface(s)
-                collider = new MyPlayerCollider();
+            level.Add(clone);
 
-                clone.AddComponent(collider);
-                collider.AddPrimitive(new Box(
-                    clone.Transform.LocalTranslation,
-                    clone.Transform.LocalRotation,
-                    clone.Transform.LocalScale * 1.01f), //make the colliders a fraction larger so that transparent boxes dont sit exactly on the ground and we end up with flicker or z-fighting
-                    new MaterialProperties(0.8f, 0.8f, 0.7f));
-                collider.Enable(false, 10);
-                //add To Scene Manager
-                level.Add(clone);
-            }
+
+            #endregion platform
         }
+
+        private void InitializeGreenCube(Scene level)
+        {
+            #region GreenCube
+            //re-use the code on the gfx card, if we want to draw multiple objects using Clone
+            var shader = new BasicShader(Application.Content, false, true);
+            var sign = new GameObject("Cube1", GameObjectType.Consumable, true);
+            GameObject clone = null;
+
+            clone = sign.Clone() as GameObject;
+            clone.Name = "Cube1";
+            clone.Transform.Translate(-70, 12, 56);
+            clone.Transform.SetScale(0.1f, 0.1f, 0.1f);
+            clone.Transform.SetRotation(0, 130, 0);
+            clone.AddComponent(new ModelRenderer(modelDictionary["Cube1"], new BasicMaterial("sphere_material", shader, Color.White, 1, textureDictionary["GreenCube"])));
+
+            //add Collision Surface(s)
+            collider = new Collider();
+            clone.AddComponent(collider);
+            collider.AddPrimitive(
+               CollisionUtility.GetTriangleMesh(modelDictionary["Cube1"],
+                new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0.8f, 0.8f, 1f)),
+                new MaterialProperties(0.1f, 0.8f, 0.7f));
+
+            collider.Enable(true, 1);
+
+            level.Add(clone);
+
+
+            #endregion GreenCube
+        }
+
+        private void InitializeRedCube(Scene level)
+        {
+            #region RedCube
+            //re-use the code on the gfx card, if we want to draw multiple objects using Clone
+            var shader = new BasicShader(Application.Content, false, true);
+            var sign = new GameObject("Cube2", GameObjectType.Consumable, true);
+            GameObject clone = null;
+
+            clone = sign.Clone() as GameObject;
+            clone.Name = "Cube2";
+            clone.Transform.Translate(-70, 12, 56);
+            clone.Transform.SetScale(0.2f, 0.2f, 0.2f);
+            clone.Transform.SetRotation(0, 130, 0);
+            clone.AddComponent(new ModelRenderer(modelDictionary["Cube2"], new BasicMaterial("sphere_material", shader, Color.White, 1, textureDictionary["RedCube"])));
+
+            //add Collision Surface(s)
+            collider = new Collider();
+            clone.AddComponent(collider);
+            collider.AddPrimitive(
+               CollisionUtility.GetTriangleMesh(modelDictionary["Cube2"],
+                new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0.8f, 0.8f, 1f)),
+                new MaterialProperties(0.1f, 0.8f, 0.7f));
+
+            collider.Enable(true, 1);
+
+            level.Add(clone);
+
+
+            #endregion RedCube
+        }
+
+        //private void InitializePrimCubeGood(Scene level)
+        //{
+        //    PrimitiveType primitiveType;
+        //    int primitiveCount;
+        //    primitiveType = PrimitiveType.TriangleList;
+        //    primitiveCount = 4;
+        //    short[] indices = new short[24];
+        //    VertexPositionColor[] vertices = new VertexPositionColor[6];
+
+        //    vertices[0] = new VertexPositionColor(new Vector3(-1, 0, 1), Color.Green);
+        //    vertices[1] = new VertexPositionColor(new Vector3(-1, 0, -1), Color.Green);
+        //    vertices[2] = new VertexPositionColor(new Vector3(1, 0, -1), Color.Green);
+        //    vertices[3] = new VertexPositionColor(new Vector3(1, 0, 1), Color.Green);
+        //    vertices[4] = new VertexPositionColor(new Vector3(0, 1, 0), Color.Green);
+        //    vertices[5] = new VertexPositionColor(new Vector3(0, -1, 0), Color.Green);
+
+        //    indices[0] = 0;
+        //    indices[1] = 1;
+        //    indices[2] = 4;
+        //    indices[3] = 1;
+        //    indices[4] = 2;
+        //    indices[5] = 4;
+        //    indices[6] = 2;
+        //    indices[7] = 3;
+        //    indices[8] = 4;
+        //    indices[9] = 3;
+        //    indices[10] = 0;
+        //    indices[11] = 4;
+        //    indices[12] = 0;
+        //    indices[13] = 5;
+        //    indices[14] = 1;
+        //    indices[15] = 1;
+        //    indices[16] = 5;
+        //    indices[17] = 2;
+        //    indices[18] = 2;
+        //    indices[19] = 5;
+        //    indices[20] = 3;
+        //    indices[21] = 3;
+        //    indices[22] = 5;
+        //    indices[23] = 0;
+
+        //}
+
 
         #endregion Student/Group Specific Code
 
-        /******************************* Demo (Remove For Release) *******************************/
 
-        #region Demo Code
-
-#if DEMO
-
-        public delegate void MyDelegate(string s, bool b);
-
-        public List<MyDelegate> delList = new List<MyDelegate>();
-
-        public void DoSomething(string msg, bool enableIt)
-        {
-        }
-
-        private void InitializeEditorHelpers()
-        {
-            //a game object to record camera positions to an XML file for use in a curve later
-            var curveRecorder = new GameObject("curve recorder", GameObjectType.Editor);
-            curveRecorder.AddComponent(new GDLibrary.Editor.CurveRecorderController());
-            activeScene.Add(curveRecorder);
-        }
-
-        private void RunDemos()
-        {
-            // CurveDemo();
-            // SaveLoadDemo();
-
-            EventSenderDemo();
-        }
-
-        private void EventSenderDemo()
-        {
-            var myDel = new MyDelegate(DoSomething);
-            myDel("sdfsdfdf", true);
-            delList.Add(DoSomething);
-        }
-
-        private void CurveDemo()
-        {
-            //var curve1D = new GDLibrary.Parameters.Curve1D(CurveLoopType.Cycle);
-            //curve1D.Add(0, 0);
-            //curve1D.Add(10, 1000);
-            //curve1D.Add(20, 2000);
-            //curve1D.Add(40, 4000);
-            //curve1D.Add(60, 6000);
-            //var value = curve1D.Evaluate(500, 2);
-        }
-
-        private void SaveLoadDemo()
-        {
-        #region Serialization Single Object Demo
-
-            var demoSaveLoad = new DemoSaveLoad(new Vector3(1, 2, 3), new Vector3(45, 90, -180), new Vector3(1.5f, 0.1f, 20.25f));
-            GDLibrary.Utilities.SerializationUtility.Save("DemoSingle.xml", demoSaveLoad);
-            var readSingle = GDLibrary.Utilities.SerializationUtility.Load("DemoSingle.xml",
-                typeof(DemoSaveLoad)) as DemoSaveLoad;
-
-        #endregion Serialization Single Object Demo
-
-        #region Serialization List Objects Demo
-
-            List<DemoSaveLoad> listDemos = new List<DemoSaveLoad>();
-            listDemos.Add(new DemoSaveLoad(new Vector3(1, 2, 3), new Vector3(45, 90, -180), new Vector3(1.5f, 0.1f, 20.25f)));
-            listDemos.Add(new DemoSaveLoad(new Vector3(10, 20, 30), new Vector3(4, 9, -18), new Vector3(15f, 1f, 202.5f)));
-            listDemos.Add(new DemoSaveLoad(new Vector3(100, 200, 300), new Vector3(145, 290, -80), new Vector3(6.5f, 1.1f, 8.05f)));
-
-            GDLibrary.Utilities.SerializationUtility.Save("ListDemo.xml", listDemos);
-            var readList = GDLibrary.Utilities.SerializationUtility.Load("ListDemo.xml",
-                typeof(List<DemoSaveLoad>)) as List<DemoSaveLoad>;
-
-        #endregion Serialization List Objects Demo
-        }
-
-#endif
-
-        #endregion Demo Code
     }
 }
